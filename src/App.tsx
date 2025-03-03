@@ -1,57 +1,93 @@
-import React, { useState } from 'react';
+import React, { Children, useState } from 'react';
 import './App.css';
 
-const laptopList = [
+const accessoriesList = [
   {
-    name:' Asus Laptop',
-    model: 'model 1'
+   title:'Group A-Laptops',
+   children:[
+    {
+      name:' Apple Laptop',
+      model: 'model 2'
+    },
+    {
+      name:' Dell Laptop',
+      model: 'model 3'
+    },
+   ]
   },
   {
-    name:' Apple Laptop',
-    model: 'model 2'
-  },
-  {
-    name:' Dell Laptop',
-    model: 'model 3'
-  },
+    title:'Group B-Mobiles',
+    children:[
+     {
+       name:'IPhone',
+       model: '16 Pro Max'
+     },
+     {
+       name:'Samsung',
+       model: 'S25'
+     },
+    ]
+   },
 ];
 
+interface IBox{
+  groupIndex:number | null;
+  boxIndex:number | null;
+}
+
 function App() {
-  const [items, setItems] = useState([...laptopList]);
-  const [newIndex, setNewIndex] = useState<null | number>(null);
+  const [items, setItems] = useState([...accessoriesList]);
+  const [newIndex, setNewIndex] = useState<IBox>({
+    groupIndex:null,
+    boxIndex:null
+  });
   console.log("🚀 ~ App ~ newIndex:", newIndex);
 
-  const handleDragStart =(index:number)=>{
-    setNewIndex(index);   
+  const handleDragStart =(groupIndex:number, boxIndex:number)=>{
+    setNewIndex({
+      groupIndex,
+      boxIndex
+    });   
   }
 
   const handleDragEnd =(event:React.DragEvent)=>{
      event.preventDefault();
   }
 
-  const handleDrag = (index:number)=>{
-    console.log("🚀 ~ handleDrag ~ index:", index);
-    if (newIndex === null) return;
+  const handleDrag = (groupIndex:number, boxIndex:number)=>{
+    if (newIndex.groupIndex === null || newIndex.boxIndex === null) return;
 
     const newItems = [...items];
-    const draggedItem = newItems.splice(newIndex, 1)[0]; // Remove dragged item
-    newItems.splice(index, 0, draggedItem); // Insert at new position
+    const draggedItem = newItems[newIndex.groupIndex].children.splice(newIndex.boxIndex, 1)[0]; // Remove dragged item
+    newItems[groupIndex].children.splice(boxIndex, 0, draggedItem); // Insert at new position
 
     setItems(newItems);
-    setNewIndex(null);
+    setNewIndex({
+      groupIndex:null,
+      boxIndex:null
+    });
   }
 
   return (
     <>
      {
-      items.map((laptop, key)=>{
-        return <div key={key} style={{background:'red', borderRadius:'10px', padding:'5px', marginBottom:'5px'}} 
-           onDragStart={()=>handleDragStart(key)}
-           onDragOver={handleDragEnd}
-           onDrop={()=>handleDrag(key)}
-           draggable>
-           <h4>{laptop.name}</h4>
-           <p>{laptop.model}</p>
+      items.map((accessories, key)=>{
+        return <div key={key} style={{border: '1px dotted gray', borderRadius:'10px', padding:'10px', marginBottom:'10px'}}>
+             <h5>{accessories.title}</h5>
+             <div>
+              {
+               accessories.children.map((items, index)=>{
+                return <div key={index} style={{background:'red', borderRadius:'10px', padding:'5px', marginBottom:'5px'}} 
+                  onDragStart={()=>handleDragStart(key,index)}
+                  onDragOver={handleDragEnd}
+                  onDrop={()=>handleDrag(key, index)}
+                  draggable>
+                  <h4>{items.name}</h4>
+                  <p>{items.model}</p>
+                </div>
+               })
+              }
+             </div>
         </div>
       })
      }
